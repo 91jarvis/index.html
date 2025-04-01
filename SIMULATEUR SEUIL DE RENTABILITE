@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulateur de Seuil de Rentabilité</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+    input { width: 100px; margin: 5px; }
+    label { display: inline-block; width: 250px; }
+    canvas { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2>Simulateur de Seuil de Rentabilité</h2>
+  <label>Prix de vente unitaire (€) : <input type="number" id="prix" value="15"></label><br>
+  <label>Coût variable unitaire (€) : <input type="number" id="cvu" value="8.5"></label><br>
+  <label>Charges fixes totales (€) : <input type="number" id="cf" value="5000"></label><br>
+  <label>Quantité estimée (unités) : <input type="number" id="quantite" value="2000"></label><br>
+  <button onclick="calculer()">Calculer</button>
+
+  <h3>Résultats</h3>
+  <p>Marge sur coût variable unitaire : <span id="mcvu"></span> €</p>
+  <p>Seuil de rentabilité (unités) : <span id="sru"></span></p>
+  <p>Seuil de rentabilité (€) : <span id="sre"></span></p>
+
+  <canvas id="graphique" width="600" height="400"></canvas>
+
+  <script>
+    let chart;
+    function calculer() {
+      const prix = parseFloat(document.getElementById("prix").value);
+      const cvu = parseFloat(document.getElementById("cvu").value);
+      const cf = parseFloat(document.getElementById("cf").value);
+      const qte = parseInt(document.getElementById("quantite").value);
+
+      const mcvu = prix - cvu;
+      const seuilUnit = Math.ceil(cf / mcvu);
+      const seuilEuro = seuilUnit * prix;
+
+      document.getElementById("mcvu").textContent = mcvu.toFixed(2);
+      document.getElementById("sru").textContent = seuilUnit;
+      document.getElementById("sre").textContent = seuilEuro.toFixed(2);
+
+      const labels = Array.from({length: qte+1}, (_, i) => i);
+      const ca = labels.map(x => x * prix);
+      const ct = labels.map(x => cf + x * cvu);
+
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById("graphique"), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Chiffre d'affaires",
+              data: ca,
+              borderWidth: 2
+            },
+            {
+              label: "Coût total",
+              data: ct,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: { title: { display: true, text: 'Quantité vendue (unités)' } },
+            y: { title: { display: true, text: 'Montant (€)' } }
+          }
+        }
+      });
+    }
+    calculer();
+  </script>
+</body>
+</html>
